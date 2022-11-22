@@ -1,10 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const { ObjectId } = require("mongodb");
 const config = require("./config");
 const initDb = require("./initDb");
 const server = require("./server");
+
 const app = server();
-const { ObjectId } = require("mongodb");
 
 const appPort = config.get("appPort");
 const collName = config.get("collName");
