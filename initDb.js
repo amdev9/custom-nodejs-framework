@@ -1,4 +1,5 @@
 const config = require("./config");
+const logger = require("./logger");
 const { MongoClient } = require("mongodb");
 
 const mongoUrl = config.get("mongoUrl");
@@ -29,10 +30,10 @@ const validatorObj = {
 };
 
 async function initDb() {
-  console.log("initDb");
+  logger.info("initDb");
   try {
     await client.connect();
-    console.log("Connected successfully to server");
+    logger.info("Connected successfully to server");
     const db = client.db(dbName);
 
     const collection = await client
@@ -50,7 +51,7 @@ async function initDb() {
       return db;
     }
   } catch (e) {
-    console.log("Error" + e);
+    logger.error(`Error init database ${e}`);
   }
 }
 

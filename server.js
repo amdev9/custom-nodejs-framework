@@ -1,6 +1,7 @@
 const fs = require("fs");
-const path = require("path");
+
 const http = require("http");
+const logger = require("./logger");
 const queryParse = require("./query-params.js");
 const parse = require("./url-to-regex");
 const ContentTypeParser = require("./contentParser");
@@ -85,15 +86,14 @@ function myServer() {
   });
 
   function registerPath(path, cb, method, middleware) {
-    console.log("----------< ", middleware);
+    if (middleware) {
+      logger.info(`middleware ${middleware.name}`)
+    }
+    logger.info(path, cb, method, middleware)
     if (!routeTable[path]) {
       routeTable[path] = {};
     }
-    routeTable[path] = {
-      ...routeTable[path],
-      [method]: cb,
-      [method + "-middleware"]: middleware,
-    };
+    
     routeTable[path] = {
       ...routeTable[path],
       [method]: cb,

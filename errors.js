@@ -1,5 +1,3 @@
-const util = require("util");
-
 function createError(code, message, statusCode = 500) {
   if (!code) throw new Error("error code must not be empty");
   if (!message) throw new Error("error message must not be empty");

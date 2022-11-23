@@ -1,4 +1,8 @@
+const logger = require('./logger')
+const { FST_ERR_CTP_EMPTY_JSON_BODY } = require("./errors");
+
 const defaultJsonParser = (body) => {
+  // FST_ERR_CTP_EMPTY_JSON_BODY
   body = body ? JSON.parse(body) : {};
 
   return body;
@@ -25,7 +29,7 @@ function ContentTypeParser() {
 }
 
 ContentTypeParser.prototype.run = async function (contentType, req) {
-  console.log(contentType, this.customParsers);
+  logger.info(contentType, this.customParsers);
   const parser = this.customParsers.get(contentType);
   let body = await readBody(req);
   return parser(body);
@@ -36,7 +40,7 @@ ContentTypeParser.prototype.add = function (contentType, parser) {
   if (!contentTypeIsString && !(contentType instanceof RegExp))
     throw new FST_ERR_CTP_INVALID_TYPE();
 
-  console.log(this.customParsers);
+  logger.info(this.customParsers);
   this.customParsers.set(contentType.toString(), parser);
 };
 

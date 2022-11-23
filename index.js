@@ -2,11 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const { ObjectId } = require("mongodb");
 const config = require("./config");
+const logger = require("./logger");
 const initDb = require("./initDb");
 const server = require("./server");
-
-const { FST_ERR_CTP_EMPTY_JSON_BODY } = require("./errors");
-const { ContentTypeParser } = require("./contentParser");
 
 const app = server();
 
@@ -23,30 +21,30 @@ const start = async () => {
       const dbResponse = await db
         .collection(collName)
         .findOne({ _id: new ObjectId(req.params.id) });
-      console.log("res", dbResponse);
+      logger.info("res", dbResponse);
 
       res.json(dbResponse);
     } catch (e) {
-      console.log("e", JSON.stringify(e.errInfo));
+      logger.error("e", JSON.stringify(e.errInfo));
       res.statusCode = 500;
       res.send("Error db get ", JSON.stringify(e));
     }
   });
   app.get("/products/", (req, res) => {
     // /products?page=1&pageSize=10 =>  { page: '1', pageSize: '10' }
-    console.log(req.query);
+    logger.info(req.query);
     res.send(JSON.stringify(req.query));
   });
   app.post("/products/", async (req, res) => {
     const data = req.body;
-    console.info("data", data);
+    logger.info("data", data);
     try {
       const dbResponse = await db.collection(collName).insertOne(data);
-      console.log("res", dbResponse.insertedId.toString());
-
+      
+      logger.info(`dbResponse insertOne: ${dbResponse.insertedId.toString()}`);
       res.send(dbResponse.insertedId.toString());
     } catch (e) {
-      console.log("e", JSON.stringify(e.errInfo));
+      logger.error("e", JSON.stringify(e.errInfo));
       res.statusCode = 500;
       res.send("Error db insert ", JSON.stringify(e));
     }
@@ -56,7 +54,7 @@ const start = async () => {
     const file = req.params.file;
     const pth = path.join(__dirname, "uploads", file + ".jpeg");
 
-    console.log(pth);
+    logger.info(pth);
     if (fs.existsSync(pth)) {
       res.sendFile(pth);
     } else {
@@ -69,7 +67,7 @@ const start = async () => {
     if (req.headers["authorization"] === "a123") {
       next();
     } else {
-      console.log("++ protectedMiddleware");
+      logger.info("++ protectedMiddleware");
       res.statusCode = 401;
       res.send("Not allowed");
     }
@@ -80,7 +78,7 @@ const start = async () => {
   });
 
   app.listen(appPort, () => {
-    console.log(`listening on port ${appPort}`);
+    logger.info(`listening on port ${appPort}`);
   });
 };
 
