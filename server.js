@@ -3,6 +3,7 @@ const path = require("path");
 const http = require("http");
 const queryParse = require("./query-params.js");
 const parse = require("./url-to-regex");
+const ContentTypeParser = require("./contentParser");
 
 function createResponse(res) {
   res.send = (message) => res.end(message);
@@ -24,21 +25,6 @@ function createResponse(res) {
   return res;
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += "" + chunk;
-    });
-    req.on("end", () => {
-      resolve(body);
-    });
-    req.on("error", (err) => {
-      reject(err);
-    });
-  });
-}
-
 function processMiddleware(middleware, req, res) {
   if (!middleware) {
     // resolve false
@@ -54,8 +40,8 @@ function processMiddleware(middleware, req, res) {
 
 function myServer() {
   let routeTable = {};
-  let parseMethod = "json";
 
+  const contentTypeParser = new ContentTypeParser();
   const server = http.createServer(async (req, res) => {
     const routes = Object.keys(routeTable);
     let match = false;
@@ -76,12 +62,8 @@ function myServer() {
         req.params = m.groups;
         req.query = queryParse(req.url);
 
-        let body = await readBody(req);
-
-        if (parseMethod === "json") {
-          body = body ? JSON.parse(body) : {};
-        }
-        req.body = body;
+        const contentType = req.headers["content-type"];
+        req.body = await contentTypeParser.run(contentType, req);
 
         const result = await processMiddleware(
           middleware,
@@ -151,8 +133,6 @@ function myServer() {
         registerPath(path, rest[1], "delete", rest[0]);
       }
     },
-    bodyParse: (method) => (parseMethod = method),
-    //TODO: static: () =>
     listen(port, cb) {
       server.listen(port, cb);
     },
