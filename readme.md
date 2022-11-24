@@ -8,9 +8,15 @@
 - 8. Обработка ошибок
 - 9. Логирование
 
+start
+npm start
+
 examples
 
 curl -X POST http://localhost:8000/products/ -H 'Content-Type: application/json' -d '{"login":"my_login","password":"my_password"}' // id from mongodb
 
 curl -X 'GET' 'http://localhost:8000/protected' // Unauthorized
 curl -X 'GET' 'http://localhost:8000/protected' -H 'Authorization: a123' // protected route
+...
+
+
