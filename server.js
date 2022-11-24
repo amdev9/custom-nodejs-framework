@@ -18,6 +18,12 @@ function createResponse(res) {
     res.end(message);
   };
 
+  res.blob = (buffer) => {
+    // example res.blob(Buffer.from("I'm a string!", "utf-8"))
+    res.write(buffer);
+    res.end();
+  };
+
   res.sendFile = (path) => {
     const fileStream = fs.createReadStream(path);
     fileStream.on("open", () => {
@@ -78,7 +84,7 @@ function myServer() {
           }
 
           const result = await processMiddleware(
-            errorHandler,
+            errorHandler, // in case we need to handle middleware errors right here
             middleware,
             req,
             res
@@ -88,7 +94,7 @@ function myServer() {
             await cb(req, res);
           }
         } catch (e) {
-          errorHandler(e, req, res);
+          errorHandler(e, req, res); // main errorHandler
         }
         match = true;
         break;
@@ -116,8 +122,24 @@ function myServer() {
     };
   }
 
+  // middleware magic handle method
+  const method =
+    (name) =>
+    (path, ...rest) => {
+      if (rest.length === 1) {
+        registerPath(path, rest[0], name);
+      } else {
+        registerPath(path, rest[1], name, rest[0]);
+      }
+    };
+
   return {
-    get: (path, ...rest) => {
+    get: method("get"),
+    post: method("post"),
+    put: method("put"),
+    delete: method("delete"),
+
+    static: (path, ...rest) => {
       if (rest.length === 1) {
         registerPath(path, rest[0], "get");
       } else {
@@ -125,29 +147,6 @@ function myServer() {
       }
     },
 
-    post: (path, ...rest) => {
-      if (rest.length === 1) {
-        registerPath(path, rest[0], "post");
-      } else {
-        registerPath(path, rest[1], "post", rest[0]);
-      }
-    },
-
-    put: (path, ...rest) => {
-      if (rest.length === 1) {
-        registerPath(path, rest[0], "put");
-      } else {
-        registerPath(path, rest[1], "put", rest[0]);
-      }
-    },
-
-    delete: (path, ...rest) => {
-      if (rest.length === 1) {
-        registerPath(path, rest[0], "delete");
-      } else {
-        registerPath(path, rest[1], "delete", rest[0]);
-      }
-    },
     listen(port, cb) {
       server.listen(port, cb);
     },

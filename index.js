@@ -60,7 +60,7 @@ const start = async () => {
     }
   });
 
-  app.get("/photos/:file", function (req, res) {
+  app.get("/photos/:file", function (req, res) { // static
     const file = req.params.file;
     const pth = path.join(__dirname, "uploads", file + ".jpeg");
 
@@ -69,8 +69,6 @@ const start = async () => {
       res.sendFile(pth);
     } else {
       throw codes.FORBIDDEN;
-      // res.statusCode = 403;
-      // res.send("Sorry! you cant see that.");
     }
   });
 
