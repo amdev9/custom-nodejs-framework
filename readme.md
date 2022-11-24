@@ -9,6 +9,7 @@
 - 9. Логирование
 
 start
+npm i
 npm start
 
 examples
