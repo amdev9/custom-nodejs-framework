@@ -1,12 +1,5 @@
-const logger = require('./logger')
-const { FST_ERR_CTP_EMPTY_JSON_BODY } = require("./errors");
-
-const defaultJsonParser = (body) => {
-  // FST_ERR_CTP_EMPTY_JSON_BODY
-  body = body ? JSON.parse(body) : {};
-
-  return body;
-};
+const logger = require("./logger");
+const { codes } = require("./errors");
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -23,25 +16,33 @@ function readBody(req) {
   });
 }
 
-function ContentTypeParser() {
-  this.customParsers = new Map();
-  this.customParsers.set("application/json", defaultJsonParser);
+class ContentTypeParser {
+  constructor() {
+    this.customParsers = new Map();
+    // this.customParsers.set("application/json", defaultJsonParser);
+  }
+
+  async run(contentType, req) {
+    try {
+      logger.info(contentType, this.customParsers);
+      const parser = this.customParsers.get(contentType);
+
+      let body = await readBody(req);
+
+      return parser(body);
+    } catch (e) {
+      throw codes.BAD_REQUEST;
+    }
+  }
+
+  add(contentType, parser) {
+    const contentTypeIsString = typeof contentType === "string";
+    if (!contentTypeIsString && !(contentType instanceof RegExp))
+      throw codes.INVALID_TYPE;
+
+    logger.info(this.customParsers);
+    this.customParsers.set(contentType.toString(), parser);
+  }
 }
-
-ContentTypeParser.prototype.run = async function (contentType, req) {
-  logger.info(contentType, this.customParsers);
-  const parser = this.customParsers.get(contentType);
-  let body = await readBody(req);
-  return parser(body);
-};
-
-ContentTypeParser.prototype.add = function (contentType, parser) {
-  const contentTypeIsString = typeof contentType === "string";
-  if (!contentTypeIsString && !(contentType instanceof RegExp))
-    throw new FST_ERR_CTP_INVALID_TYPE();
-
-  logger.info(this.customParsers);
-  this.customParsers.set(contentType.toString(), parser);
-};
 
 module.exports = ContentTypeParser;

@@ -6,17 +6,26 @@ const logger = require("./logger");
 const initDb = require("./initDb");
 const server = require("./server");
 
-const app = server();
+const { codes } = require("./errors");
 
 const appPort = config.get("appPort");
 const collName = config.get("collName");
 
+const defaultJsonParser = (body) => {
+  // FST_ERR_CTP_EMPTY_JSON_BODY
+
+  body = body ? JSON.parse(body) : {};
+  return body;
+};
+
 const start = async () => {
   const db = await initDb();
+  const app = server();
+
+  app.addContentTypeParser("application/json", defaultJsonParser);
 
   app.get("/products/:id", async (req, res) => {
     //  /products/1, req.params has value  { id: '1' }
-
     try {
       const dbResponse = await db
         .collection(collName)
@@ -25,28 +34,29 @@ const start = async () => {
 
       res.json(dbResponse);
     } catch (e) {
-      logger.error("e", JSON.stringify(e.errInfo));
-      res.statusCode = 500;
-      res.send("Error db get ", JSON.stringify(e));
+      console.log(e);
+
+      throw codes.INTERNAL_SERVER_ERROR;
     }
   });
+
   app.get("/products/", (req, res) => {
     // /products?page=1&pageSize=10 =>  { page: '1', pageSize: '10' }
     logger.info(req.query);
     res.send(JSON.stringify(req.query));
   });
+
   app.post("/products/", async (req, res) => {
     const data = req.body;
     logger.info("data", data);
     try {
       const dbResponse = await db.collection(collName).insertOne(data);
-      
+
       logger.info(`dbResponse insertOne: ${dbResponse.insertedId.toString()}`);
       res.send(dbResponse.insertedId.toString());
     } catch (e) {
-      logger.error("e", JSON.stringify(e.errInfo));
-      res.statusCode = 500;
-      res.send("Error db insert ", JSON.stringify(e));
+      console.log(e);
+      throw codes.INTERNAL_SERVER_ERROR;
     }
   });
 
@@ -58,8 +68,9 @@ const start = async () => {
     if (fs.existsSync(pth)) {
       res.sendFile(pth);
     } else {
-      res.statusCode = 403;
-      res.send("Sorry! you cant see that.");
+      throw codes.FORBIDDEN;
+      // res.statusCode = 403;
+      // res.send("Sorry! you cant see that.");
     }
   });
 
@@ -67,9 +78,7 @@ const start = async () => {
     if (req.headers["authorization"] === "a123") {
       next();
     } else {
-      logger.info("++ protectedMiddleware");
-      res.statusCode = 401;
-      res.send("Not allowed");
+      throw codes.UNAUTHORIZED;
     }
   };
 

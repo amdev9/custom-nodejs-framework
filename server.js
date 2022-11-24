@@ -5,6 +5,7 @@ const logger = require("./logger");
 const queryParse = require("./query-params.js");
 const parse = require("./url-to-regex");
 const ContentTypeParser = require("./contentParser");
+const errorHandler = require("./errorHandler");
 
 function createResponse(res) {
   res.send = (message) => res.end(message);
@@ -23,25 +24,31 @@ function createResponse(res) {
       fileStream.pipe(res);
     });
   };
+
   return res;
 }
 
-function processMiddleware(middleware, req, res) {
+function processMiddleware(errHandler, middleware, req, res) {
   if (!middleware) {
     // resolve false
     return new Promise((resolve) => resolve(true));
   }
 
-  return new Promise((resolve) => {
-    middleware(req, res, function () {
-      resolve(true);
-    });
+  return new Promise((resolve, reject) => {
+    try {
+      middleware(req, res, function () {
+        resolve(true);
+      });
+    } catch (e) {
+      errHandler(e, req, res, function () {
+        resolve(true);
+      });
+    }
   });
 }
 
 function myServer() {
   let routeTable = {};
-
   const contentTypeParser = new ContentTypeParser();
   const server = http.createServer(async (req, res) => {
     const routes = Object.keys(routeTable);
@@ -54,7 +61,6 @@ function myServer() {
         routeTable[route][req.method.toLowerCase()]
       ) {
         let cb = routeTable[route][req.method.toLowerCase()];
-
         let middleware =
           routeTable[route][`${req.method.toLowerCase()}-middleware`];
 
@@ -62,19 +68,28 @@ function myServer() {
 
         req.params = m.groups;
         req.query = queryParse(req.url);
+        res = createResponse(res);
 
-        const contentType = req.headers["content-type"];
-        req.body = await contentTypeParser.run(contentType, req);
+        try {
+          const contentType = req.headers["content-type"];
 
-        const result = await processMiddleware(
-          middleware,
-          req,
-          createResponse(res)
-        );
-        if (result) {
-          cb(req, res);
+          if (contentType) {
+            req.body = await contentTypeParser.run(contentType, req);
+          }
+
+          const result = await processMiddleware(
+            errorHandler,
+            middleware,
+            req,
+            res
+          );
+
+          if (result) {
+            await cb(req, res);
+          }
+        } catch (e) {
+          errorHandler(e, req, res);
         }
-
         match = true;
         break;
       }
@@ -87,13 +102,13 @@ function myServer() {
 
   function registerPath(path, cb, method, middleware) {
     if (middleware) {
-      logger.info(`middleware ${middleware.name}`)
+      logger.info(`middleware ${middleware.name}`);
     }
-    logger.info(path, cb, method, middleware)
+    logger.info(path, cb, method, middleware);
     if (!routeTable[path]) {
       routeTable[path] = {};
     }
-    
+
     routeTable[path] = {
       ...routeTable[path],
       [method]: cb,
@@ -136,6 +151,9 @@ function myServer() {
     listen(port, cb) {
       server.listen(port, cb);
     },
+
+    addContentTypeParser: (contentType, parser) =>
+      contentTypeParser.add(contentType, parser),
     _server: server,
   };
 }
