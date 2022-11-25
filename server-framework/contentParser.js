@@ -1,5 +1,6 @@
-const { codes } = require("./errors");
+const { codes, CustomError } = require("./errors");
 const ServerGlobal = require("./ServerGlobal");
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -23,7 +24,6 @@ class ContentTypeParser {
   }
 
   async run(contentType, req) {
-    
     try {
       this.logger.info(`run ${contentType} parser`);
       const parser = this.customParsers.get(contentType);
@@ -32,6 +32,9 @@ class ContentTypeParser {
 
       return parser(body);
     } catch (e) {
+      if (e instanceof CustomError) {
+        throw e;
+      }
       throw codes.BAD_REQUEST;
     }
   }
@@ -41,8 +44,8 @@ class ContentTypeParser {
     if (!contentTypeIsString && !(contentType instanceof RegExp))
       throw codes.INVALID_TYPE;
 
-    this.logger.info(this.customParsers);
     this.customParsers.set(contentType.toString(), parser);
+    this.logger.info([...this.customParsers.entries()]);
   }
 }
 

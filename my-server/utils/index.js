@@ -1,7 +1,11 @@
-const defaultJsonParser = (body) => {
-  // FST_ERR_CTP_EMPTY_JSON_BODY
+const { codes } = require("server-framework");
 
-  body = body ? JSON.parse(body) : {};
+const defaultJsonParser = (body) => {
+  if (body) {
+    body = JSON.parse(body);
+  } else {
+    throw codes.EMPTY_JSON_BODY;
+  }
   return body;
 };
 
