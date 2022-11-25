@@ -1,15 +1,23 @@
 const fs = require("fs");
 const path = require("path");
 const { ObjectId } = require("mongodb");
-const config = require("./config");
-const logger = require("./logger");
-const initDb = require("./initDb");
-const server = require("./server");
 
-const { codes } = require("./errors");
+// TODO: fix to npm dependency
 
-const appPort = config.get("appPort");
-const collName = config.get("collName");
+const {
+  server,
+  initConfLog,
+  initMongoDb,
+  codes
+} = require("server-framework");
+
+
+const configPath = path.join(__dirname, "config.json");
+
+// path.join(__dirname, "logs", "error.log");
+
+// TODO: https://blog.logrocket.com/organizing-express-js-project-structure-better-productivity/
+// https://github.com/geshan/expressjs-structure
 
 const defaultJsonParser = (body) => {
   // FST_ERR_CTP_EMPTY_JSON_BODY
@@ -19,7 +27,12 @@ const defaultJsonParser = (body) => {
 };
 
 const start = async () => {
-  const db = await initDb();
+ 
+  const { logger, config } = initConfLog(configPath);
+  const dbConfig = config.get("dbConfig");
+  const appPort = config.get("appPort");
+  const collName = dbConfig.collName;
+  const db = await initMongoDb();
   const app = server();
 
   app.addContentTypeParser("application/json", defaultJsonParser);
@@ -60,7 +73,8 @@ const start = async () => {
     }
   });
 
-  app.get("/photos/:file", function (req, res) { // static
+  app.get("/photos/:file", function (req, res) {
+    // static
     const file = req.params.file;
     const pth = path.join(__dirname, "uploads", file + ".jpeg");
 

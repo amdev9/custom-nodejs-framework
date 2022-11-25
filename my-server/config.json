@@ -1,0 +1,36 @@
+{
+  "appPort": 8000,
+  "dbName": "credential",
+  "dbConfig": {
+    "mongoUrl": "mongodb://localhost:27017",
+    "dbName": "credential",
+    "collName": "credentials",
+    "validatorObj": {
+      "validator": {
+        "$jsonSchema": {
+          "bsonType": "object",
+          "title": "Object Validation",
+          "required": [
+            "login"
+          ],
+          "properties": {
+            "login": {
+              "bsonType": "string",
+              "description": "must be a string and required"
+            },
+            "password": {
+              "bsonType": "string",
+              "description": "must be a string"
+            }
+          }
+        }
+      },
+      "validationAction": "error"
+    }
+  },
+  "logger": {
+    "errorFile": "error.log", 
+    "combinedFile": "combined.log",
+    "env": "development"
+  }
+}

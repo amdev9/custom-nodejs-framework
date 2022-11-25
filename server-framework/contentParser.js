@@ -1,6 +1,5 @@
-const logger = require("./logger");
 const { codes } = require("./errors");
-
+const ServerGlobal = require("./ServerGlobal");
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -19,12 +18,14 @@ function readBody(req) {
 class ContentTypeParser {
   constructor() {
     this.customParsers = new Map();
+    this.logger = ServerGlobal.getInstance().logger;
     // this.customParsers.set("application/json", defaultJsonParser);
   }
 
   async run(contentType, req) {
+    
     try {
-      logger.info(contentType, this.customParsers);
+      this.logger.info(`run ${contentType} parser`);
       const parser = this.customParsers.get(contentType);
 
       let body = await readBody(req);
@@ -40,7 +41,7 @@ class ContentTypeParser {
     if (!contentTypeIsString && !(contentType instanceof RegExp))
       throw codes.INVALID_TYPE;
 
-    logger.info(this.customParsers);
+    this.logger.info(this.customParsers);
     this.customParsers.set(contentType.toString(), parser);
   }
 }

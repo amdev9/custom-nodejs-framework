@@ -1,11 +1,19 @@
 const fs = require("fs");
 
 const http = require("http");
-const logger = require("./logger");
-const queryParse = require("./query-params.js");
-const parse = require("./url-to-regex");
+const queryParse = require("./queryParams.js");
+const parse = require("./urlToRegex");
 const ContentTypeParser = require("./contentParser");
 const errorHandler = require("./errorHandler");
+// const initMongoDb = require("./initMongoDb");
+// const initConfig = require("./initConfig");
+
+const { codes } = require("./errors");
+
+const ServerGlobal = require("./ServerGlobal");
+
+const initConfLog = (path) => ServerGlobal.getInstance(path);
+const initMongoDb = () => ServerGlobal.getInstance().initMongo()
 
 function createResponse(res) {
   res.send = (message) => res.end(message);
@@ -53,7 +61,7 @@ function processMiddleware(errHandler, middleware, req, res) {
   });
 }
 
-function myServer() {
+function customServer() {
   let routeTable = {};
   const contentTypeParser = new ContentTypeParser();
   const server = http.createServer(async (req, res) => {
@@ -107,6 +115,8 @@ function myServer() {
   });
 
   function registerPath(path, cb, method, middleware) {
+    const logger = ServerGlobal.getInstance().logger;
+
     if (middleware) {
       logger.info(`middleware ${middleware.name}`);
     }
@@ -138,23 +148,13 @@ function myServer() {
     post: method("post"),
     put: method("put"),
     delete: method("delete"),
-
-    static: (path, ...rest) => {
-      if (rest.length === 1) {
-        registerPath(path, rest[0], "get");
-      } else {
-        registerPath(path, rest[1], "get", rest[0]);
-      }
-    },
-
     listen(port, cb) {
       server.listen(port, cb);
     },
-
     addContentTypeParser: (contentType, parser) =>
       contentTypeParser.add(contentType, parser),
     _server: server,
   };
 }
 
-module.exports = myServer;
+module.exports = { server: customServer, initConfLog, initMongoDb, codes };
