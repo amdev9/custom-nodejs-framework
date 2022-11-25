@@ -8,17 +8,24 @@
 + 8. Обработка ошибок
 + 9. Логирование
 
+Instructions
+------------
 
 start mongodb for mac: 
 
 ```
 brew services start mongodb-community
 ```
+Setup server-framework
+
+```
+cd server-framework && npm i
+```
+
 How to start server
 
 ```
-npm i
-npm start
+cd my-server && npm i && npm start
 ```
 
 config file format
@@ -46,5 +53,6 @@ curl -X POST http://localhost:8000/products/ -H 'Content-Type: application/json'
 curl -X 'GET' 'http://localhost:8000/protected' // Unauthorized
 curl -X 'GET' 'http://localhost:8000/protected' -H 'Authorization: a123' // protected route
 
+etc..
 ```
 

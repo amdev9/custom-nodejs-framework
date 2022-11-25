@@ -13,6 +13,8 @@ class ServerGlobal {
   constructor(configPathname, logsFolderPath) {
     console.log("path", configPathname);
     this._config = nconf.argv().env().file({ file: configPathname });
+
+    
     const { errorFile, combinedFile, env } = this._config.get("logger");
 
     if (!fs.existsSync(logsFolderPath)) {
