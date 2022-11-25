@@ -21,6 +21,23 @@ npm i
 npm start
 ```
 
+config file format
+```
+{
+  "appPort": 8000,              // port server starts
+  "dbConfig": {
+    "mongoUrl": "",             // mongo connection url 
+    "dbName": "credential",     // db name 
+    "collName": "credentials",  // collection name
+    "validatorObj": {}          // collection validation object 
+  },
+  "logger": {
+    "errorFile": "error.log",   // file with error logs
+    "combinedFile": "combined.log", // other logs
+    "env": "production"         // hardcoded ENV
+  }
+}
+```
 examples
 
 ```

@@ -1,3 +1,2 @@
 node_modules
-logger/combined.log
-logger/error.log
+logs/

@@ -12,7 +12,7 @@ const { codes } = require("./errors");
 
 const ServerGlobal = require("./ServerGlobal");
 
-const initConfLog = (path) => ServerGlobal.getInstance(path);
+const initConfLog = (path, logsPath) => ServerGlobal.getInstance(path, logsPath);
 const initMongoDb = () => ServerGlobal.getInstance().initMongo()
 
 function createResponse(res) {
@@ -144,10 +144,12 @@ function customServer() {
     };
 
   return {
-    get: method("get"),
-    post: method("post"),
-    put: method("put"),
-    delete: method("delete"),
+    Router: {
+      get: method("get"),
+      post: method("post"),
+      put: method("put"),
+      delete: method("delete"),
+    },
     listen(port, cb) {
       server.listen(port, cb);
     },

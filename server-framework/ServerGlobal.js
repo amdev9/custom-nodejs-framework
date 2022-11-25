@@ -10,12 +10,10 @@ class ServerGlobal {
 
   static _instance;
 
-  constructor(configPathname) {
+  constructor(configPathname, logsFolderPath) {
     console.log("path", configPathname);
     this._config = nconf.argv().env().file({ file: configPathname });
     const { errorFile, combinedFile, env } = this._config.get("logger");
-
-    const logsFolderPath = path.join(__dirname, "logs");
 
     if (!fs.existsSync(logsFolderPath)) {
       fs.mkdirSync(logsFolderPath, { recursive: true });
@@ -73,12 +71,12 @@ class ServerGlobal {
     }
   }
 
-  static getInstance(path) {
+  static getInstance(path, logsPath) {
     if (this._instance) {
       return this._instance;
     }
 
-    this._instance = new ServerGlobal(path);
+    this._instance = new ServerGlobal(path, logsPath);
     return this._instance;
   }
 
@@ -91,30 +89,5 @@ class ServerGlobal {
   }
 }
 
-// const initLogger = ({ errorPath, combinedPath, env }) => {
-//   const logger = winston.createLogger({
-//     level: "info",
-//     format: winston.format.json(),
-//     transports: [
-//       new winston.transports.File({
-//         filename: errorPath,
-//         level: "error",
-//       }),
-//       new winston.transports.File({
-//         filename: combinedPath,
-//       }),
-//     ],
-//   });
-
-//   if (env !== "production") {
-//     logger.add(
-//       new winston.transports.Console({
-//         format: winston.format.simple(),
-//       })
-//     );
-//   }
-
-//   return logger;
-// };
 
 module.exports = ServerGlobal;
