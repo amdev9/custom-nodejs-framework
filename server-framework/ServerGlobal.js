@@ -7,6 +7,7 @@ const nconf = require("nconf");
 class ServerGlobal {
   _config;
   _logger;
+  _dbConnection;
 
   static _instance;
 
@@ -14,7 +15,6 @@ class ServerGlobal {
     console.log("path", configPathname);
     this._config = nconf.argv().env().file({ file: configPathname });
 
-    
     const { errorFile, combinedFile, env } = this._config.get("logger");
 
     if (!fs.existsSync(logsFolderPath)) {
@@ -44,18 +44,24 @@ class ServerGlobal {
   }
 
   async initMongo() {
-    const { mongoUrl, dbName, collName, validatorObj } =
-      this._config.get("dbConfig");
+    const { mongoUrl, dbName } = this._config.get("dbConfig");
     const client = new MongoClient(mongoUrl);
 
     this._logger.info("initDb");
     try {
       await client.connect();
       this._logger.info("Connected successfully to server");
-      const db = client.db(dbName);
+      this._dbConnection = client.db(dbName);
+    } catch (e) {
+      this._logger.error(`Error init database collection ${e}`);
+    }
+  }
 
-      const collection = await client
-        .db(dbName)
+  async getDbWithCollectionInit() {
+    const { collName, validatorObj } = this._config.get("dbConfig");
+
+    try {
+      const collection = await this._dbConnection
         .listCollections({}, { nameOnly: true })
         .toArray();
 
@@ -63,13 +69,13 @@ class ServerGlobal {
         collection.filter((collectionItem) => collectionItem.name === collName)
           .length
       ) {
-        return db;
+        return this._dbConnection;
       } else {
-        await db.createCollection(collName, validatorObj);
-        return db;
+        await this._dbConnection.createCollection(collName, validatorObj);
+        return this._dbConnection;
       }
     } catch (e) {
-      this._logger.error(`Error init database collection ${e}`);
+      this._logger.error(`Error collection create ${e}`);
     }
   }
 
@@ -89,7 +95,10 @@ class ServerGlobal {
   get logger() {
     return this._logger;
   }
-}
 
+  get db() {
+    return this._dbConnection;
+  }
+}
 
 module.exports = ServerGlobal;

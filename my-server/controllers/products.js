@@ -1,6 +1,6 @@
 const path = require("path");
 const { ObjectId } = require("mongodb");
-const { initConfLog, initMongoDb, codes } = require("server-framework");
+const { initConfLog, getDbWithCollectionInit, codes } = require("server-framework");
 
 const configPath = path.join(__dirname, "configs", "config.json");
 
@@ -10,8 +10,8 @@ const getId = async (req, res) => {
     const { logger, config } = initConfLog(configPath);
     const collName = config.get("dbConfig").collName;
 
-    const db = await initMongoDb();
-    
+    const db = await getDbWithCollectionInit();
+
     const dbResponse = await db
       .collection(collName)
       .findOne({ _id: new ObjectId(req.params.id) });
@@ -38,7 +38,7 @@ const create = async (req, res) => {
   const { logger, config } = initConfLog(configPath);
   const collName = config.get("dbConfig").collName;
 
-  const db = await initMongoDb();
+  const db = await getDbWithCollectionInit();
 
   const data = req.body;
   logger.info("data", data);

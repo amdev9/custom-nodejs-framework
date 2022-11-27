@@ -14,6 +14,7 @@ const ServerGlobal = require("./ServerGlobal");
 
 const initConfLog = (path, logsPath) => ServerGlobal.getInstance(path, logsPath);
 const initMongoDb = () => ServerGlobal.getInstance().initMongo()
+const getDbWithCollectionInit = () => ServerGlobal.getInstance().getDbWithCollectionInit()
 
 function createResponse(res) {
   res.send = (message) => res.end(message);
@@ -159,4 +160,4 @@ function customServer() {
   };
 }
 
-module.exports = { server: customServer, initConfLog, initMongoDb, codes };
+module.exports = { server: customServer, initConfLog, initMongoDb, getDbWithCollectionInit, codes };

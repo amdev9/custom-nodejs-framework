@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { server, initConfLog, codes } = require("server-framework");
+const { server, initConfLog, initMongoDb, codes } = require("server-framework");
 
 const protectedMiddleware = require("./middlewares/protectedMiddleware");
 const productRoutes = require("./routes/products");
@@ -11,11 +11,11 @@ const configPath = path.join(__dirname, "configs", "config.json");
 const logsFolderPath = path.join(__dirname, "logs");
 
 const start = async () => {
-
   const { logger, config } = initConfLog(configPath, logsFolderPath);
   const appPort = config.get("appPort");
-
+  await initMongoDb();
   const app = server();
+
   app.addContentTypeParser("application/json", defaultJsonParser);
 
   const router = app.Router;
