@@ -1,13 +1,13 @@
-Configuration system
-Request processing, routing (similar to Express.js)
-Ability to add middlewares
-Handling different types of requests
-Working with databases (implement reading / writing to the Mongo database)
-Return of results (types: json, blob, stream)
-Sending static files // res.sendFile
-Error processing
-Logging
-
+Configuration system  
+Request processing, routing (similar to Express.js)  
+Ability to add middlewares  
+Handling different types of requests  
+Working with databases (implement reading / writing to the Mongo database)  
+Return of results (types: json, blob, stream)  
+Sending static files // res.sendFile  
+Error processing  
+Logging  
+  
 Instructions
 ------------
 
